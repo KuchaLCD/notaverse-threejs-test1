@@ -1,0 +1,222 @@
+﻿<Window x:Class="notaverse_threejs_test1.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:notaverse_threejs_test1"
+        mc:Ignorable="d"
+        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+        Title="NotaVerseBIM — 3D Viewer"
+        Height="800" Width="1200"
+        Icon="/assets/notaverse-logo.png">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Панель управления -->
+            <RowDefinition Height="*"/>
+            <!-- 3D-сцена (WebView2) -->
+            <RowDefinition Height="Auto"/>
+            <!-- Окна просмотра/редактирования -->
+        </Grid.RowDefinitions>
+
+        <!-- ==================== ПАНЕЛЬ УПРАВЛЕНИЯ ==================== -->
+        <Border Grid.Row="0" Background="#C0000000" Padding="10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Режимы работы -->
+                <StackPanel Orientation="Horizontal" Grid.Column="0">
+                    <RadioButton x:Name="RadioView" Content="👁 Просмотр"
+                                 IsChecked="True" Foreground="White"
+                                 Checked="Mode_Changed" Margin="0,0,20,0"/>
+                    <RadioButton x:Name="RadioEdit" Content="✎ Инспектор"
+                                 Foreground="White"
+                                 Checked="Mode_Changed" Margin="0,0,20,0"/>
+                </StackPanel>
+
+                <!-- Кнопки -->
+                <StackPanel Orientation="Horizontal" Grid.Column="1">
+                    <Button Content="📂 Загрузить модель"
+                            Click="LoadModel_Click"
+                            Padding="10,5" Margin="0,0,10,0"
+                            Background="#FF8E44AD" Foreground="White"
+                            BorderThickness="0" FontWeight="Bold"/>
+
+                    <Button Content="💾 Сохранить данные"
+                            Click="SaveData_Click"
+                            Padding="10,5" Margin="0,0,10,0"
+                            Background="#FF27AE60" Foreground="White"
+                            BorderThickness="0" FontWeight="Bold"/>
+
+                    <Button Content="📥 Загрузить данные"
+                            Click="LoadData_Click"
+                            Padding="10,5"
+                            Background="#FF2980B9" Foreground="White"
+                            BorderThickness="0" FontWeight="Bold"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ==================== 3D-СЦЕНА (WebView2) ==================== -->
+        <wv2:WebView2 x:Name="WebView"
+                      Grid.Row="1"
+                      AllowExternalDrop="True"
+                      DefaultBackgroundColor="#1a1a2e"/>
+
+        <!-- ==================== ПАНЕЛЬ ПРОСМОТРА ==================== -->
+        <Border x:Name="ViewInfoPanel"
+                Grid.Row="2"
+                Visibility="Collapsed"
+                Background="#F0F4F8"
+                BorderBrush="SteelBlue"
+                BorderThickness="2"
+                CornerRadius="5"
+                Width="300"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                Margin="20"
+                Padding="15">
+            <StackPanel>
+                <TextBlock x:Name="LblObjectTitle"
+                           Text="Информация"
+                           FontSize="16" FontWeight="Bold"
+                           Foreground="SteelBlue" Margin="0,0,0,10"/>
+                <StackPanel x:Name="ViewFieldsStack"/>
+                <Button Content="Закрыть"
+                        Click="CloseViewMenu_Click"
+                        Margin="0,15,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- ==================== ПАНЕЛЬ РЕДАКТИРОВАНИЯ ==================== -->
+        <Border x:Name="EditMenuPanel"
+                Grid.Row="2"
+                Visibility="Collapsed"
+                Background="White"
+                BorderBrush="Orange"
+                BorderThickness="2"
+                CornerRadius="5"
+                Width="400"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Center"
+                Margin="20"
+                Padding="15">
+            <StackPanel>
+                <TextBlock Text="Настройка аннотации"
+                           FontSize="16" FontWeight="Bold"
+                           Margin="0,0,0,10"/>
+
+                <TextBlock Text="Название объекта:"/>
+                <TextBox x:Name="TxtObjectName" Margin="0,0,0,10"/>
+
+                <TextBlock Text="Дополнительные поля:"
+                           FontWeight="Bold" Margin="0,5,0,5"/>
+
+                <ItemsControl x:Name="FieldsItemsControl">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="80"/>
+                                    <ColumnDefinition Width="30"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBox Grid.Column="0"
+                                         Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         GotFocus="TextBox_GetFocus"
+                                         Margin="0,0,5,0"
+                                         Background="#FFF5F5F5" FontWeight="Bold"/>
+
+                                <TextBox x:Name="ValueBox"
+                                         Grid.Column="1"
+                                         Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         GotFocus="TextBox_GetFocus"/>
+
+                                <ComboBox Grid.Column="2"
+                                          SelectedValue="{Binding Type, Mode=TwoWay}"
+                                          Margin="5,0,5,0"
+                                          SelectionChanged="TypeCombo_Changed">
+                                    <ComboBoxItem Content="Текст" Tag="text"/>
+                                    <ComboBoxItem Content="Ссылка" Tag="link"/>
+                                    <ComboBoxItem Content="Фото" Tag="image"/>
+                                    <ComboBoxItem Content="Файл" Tag="file"/>
+                                </ComboBox>
+
+                                <Button Grid.Column="3"
+                                        Content="×"
+                                        Click="DeleteField_Click"
+                                        Tag="{Binding}"
+                                        Margin="5,0,0,0"
+                                        Background="#FFE74C3C"
+                                        Foreground="White"
+                                        BorderThickness="0"
+                                        FontWeight="Bold"
+                                        Cursor="Hand"/>
+                            </Grid>
+                            <DataTemplate.Triggers>
+                                <DataTrigger Binding="{Binding Type}" Value="file">
+                                    <Setter TargetName="ValueBox" Property="IsReadOnly" Value="True"/>
+                                    <Setter TargetName="ValueBox" Property="Background" Value="#FFF3E5F5"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Type}" Value="image">
+                                    <Setter TargetName="ValueBox" Property="IsReadOnly" Value="True"/>
+                                    <Setter TargetName="ValueBox" Property="Background" Value="#FFE5F3F5"/>
+                                </DataTrigger>
+                            </DataTemplate.Triggers>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Конструктор добавления новых полей -->
+                <Border BorderBrush="Gray" BorderThickness="0,1,0,0"
+                        Margin="0,10,0,0" Padding="0,5,0,0">
+                    <StackPanel>
+                        <TextBox x:Name="TxtNewFieldName"
+                                 ToolTip="Имя нового поля (напр. Вес, ID)"/>
+
+                        <Grid Margin="0,5,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Button Content="+ Текст"
+                                    Click="AddCustomField_Click"
+                                    Grid.Column="0" Margin="0,0,2,0"/>
+                            <Button Content="+ Ссылка"
+                                    Click="AddLinkField_Click"
+                                    Grid.Column="1" Margin="2,0,2,0"/>
+                            <Button Content="+ Фото📷"
+                                    Click="AddImageField_Click"
+                                    Grid.Column="2" Margin="2,0,2,0"
+                                    Background="#FF9B59B6"
+                                    Foreground="White"
+                                    BorderThickness="0"/>
+                            <Button Content="+ Файл📎"
+                                    Click="AddFileField_Click"
+                                    Grid.Column="3" Margin="2,0,0,0"
+                                    Background="#FF9B59B6"
+                                    Foreground="White"
+                                    BorderThickness="0"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <Button Content="💾 Сохранить и Закрыть"
+                        Click="CloseEditMenu_Click"
+                        Background="Orange"
+                        Foreground="White"
+                        FontWeight="Bold"
+                        Height="35"
+                        Margin="0,10,0,0"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

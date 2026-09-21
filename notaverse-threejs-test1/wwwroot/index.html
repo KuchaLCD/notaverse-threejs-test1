@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Viewer — NotaVerseBIM</title>
+    <link rel="stylesheet" href="css/app.css">
+    <!-- Three.js загружается как ES-модуль через importmap -->
+    <script type="importmap">
+        {
+                "imports": {
+                    "three": "./lib/three/build/three.module.js",
+                    "three/addons/": "./lib/three/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+<body>
+    <div id="three-container"></div>
+    <script type="module" src="js/threeScene.js"></script>
+    <script src="js/interop.js"></script>
+</body>
+</html>
