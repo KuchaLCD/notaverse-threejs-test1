@@ -66,59 +66,6 @@ namespace notaverse_threejs_test1
             _selectedObjectData = null;
         }
 
-        /*
-        private async void InitializeWebViewAsync()
-        {
-            try
-            {
-                // 1. Создаём окружение WebView2
-                var userDataFolder = Path.Combine(
-                    AppDomain.CurrentDomain.BaseDirectory, "WebView2_Data");
-                var env = await CoreWebView2Environment.CreateAsync(
-                    userDataFolder: userDataFolder);
-
-                await WebView.EnsureCoreWebView2Async(env);
-
-                // 2. Настраиваем виртуальный хост для загрузки локальных файлов
-                var wwwrootPath = Path.Combine(
-                    AppDomain.CurrentDomain.BaseDirectory, "wwwroot");
-                WebView.CoreWebView2.SetVirtualHostNameToFolderMapping(
-                    "app.local",
-                    wwwrootPath,
-                    CoreWebView2HostResourceAccessKind.Allow);
-
-                // 2.1 Настройка второй виртуальный хост в MainWindow.xaml.cs для папки Models/
-                var modelsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Models");
-                if (!Directory.Exists(modelsPath))
-                    Directory.CreateDirectory(modelsPath);
-
-                // 2.2 Второй виртуальный хост для моделей — грузим .glb через URL
-                WebView.CoreWebView2.SetVirtualHostNameToFolderMapping(
-                    "models.local",
-                    modelsPath,
-                    CoreWebView2HostResourceAccessKind.Allow);
-
-                // 3. Навигация на локальную страницу
-                WebView.CoreWebView2.Navigate("https://app.local/index.html");
-
-                // 4. Подписываемся на события
-                WebView.CoreWebView2.WebMessageReceived += OnWebMessageReceived;
-                WebView.CoreWebView2.NavigationCompleted += OnNavigationCompleted;
-
-                // 5. Разрешаем drag&drop файлов
-                WebView.AllowExternalDrop = true;
-
-                // 6. Загружаем сохранённую конфигурацию
-                _sceneConfig = await _dataService.LoadSceneConfigAsync();
-                _objectsData = _sceneConfig.Objects;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Ошибка инициализации WebView2: {ex.Message}",
-                    "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-        */
         private async void InitializeWebViewAsync()
         {
             try
@@ -170,22 +117,6 @@ namespace notaverse_threejs_test1
             }
         }
 
-        /*
-        private async void OnNavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
-        {
-            if (e.IsSuccess)
-            {
-                // БОЛЬШЕ НЕ НУЖНО создавать DotNetObjectReference!
-                // Достаточно просто передать данные в JS.
-
-                // Передаём данные объектов
-                await _bridge.CallWithJsonAsync("setObjectData", _objectsData);
-
-                // Устанавливаем начальный режим
-                await _bridge.CallAsync("setMode", "view");
-            }
-        }
-        */
         private async void OnNavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
         {
             if (!e.IsSuccess) return;
@@ -630,45 +561,6 @@ namespace notaverse_threejs_test1
 
         // ==================== ЗАГРУЗКА МОДЕЛИ ====================
 
-        /*
-        private async void LoadModel_Click(object sender, RoutedEventArgs e)
-        {
-            var openFileDialog = new Microsoft.Win32.OpenFileDialog
-            {
-                Filter = "3D модели (*.glb;*.gltf)|*.glb;*.gltf|Все файлы (*.*)|*.*"
-            };
-
-            if (openFileDialog.ShowDialog() != true) return;
-
-            try
-            {
-                var sourcePath = openFileDialog.FileName;
-
-                // 1. Копируем модель во внутреннюю папку приложения
-                using var sourceStream = File.OpenRead(sourcePath);
-                var relativeModelPath = await _fileService.SaveModelAsync(
-                    sourceStream, Path.GetFileName(sourcePath));
-
-                // 2. Сохраняем ОТНОСИТЕЛЬНЫЙ путь (переносимо)
-                _sceneConfig.ModelFilePath = relativeModelPath;
-
-                // 3. Сохраняем конфиг сразу — чтобы модель «прилипла» к базе
-                await _dataService.SaveSceneConfigAsync(_sceneConfig);
-
-                // 4. Загружаем модель в JS через виртуальный хост
-                var fileNameOnly = Path.GetFileName(relativeModelPath);
-                var url = $"https://models.local/{fileNameOnly}";
-                await _bridge.CallAsync("loadModelFromUrl", url, fileNameOnly);
-
-                // Данные объектов обновятся в событии modelReady
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Ошибка загрузки модели: {ex.Message}",
-                    "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-        */
         private async void LoadModel_Click(object sender, RoutedEventArgs e)
         {
             var openFileDialog = new Microsoft.Win32.OpenFileDialog
@@ -702,110 +594,6 @@ namespace notaverse_threejs_test1
             }
         }
 
-        // ==================== СОХРАНЕНИЕ/ЗАГРУЗКА ДАННЫХ ====================
-        //private async void SaveData_Click(object sender, RoutedEventArgs e)
-        //{
-        //    try
-        //    {
-        //        _sceneConfig.Objects = _objectsData;
-
-        //        // Синхронизируем камеру из JS
-        //        var cameraJson = await WebView.CoreWebView2.ExecuteScriptAsync(
-        //            "JSON.stringify({" +
-        //            "positionX: camera.position.x," +
-        //            "positionY: camera.position.y," +
-        //            "positionZ: camera.position.z," +
-        //            "targetX: controls.target.x," +
-        //            "targetY: controls.target.y," +
-        //            "targetZ: controls.target.z" +
-        //            "})");
-
-        //        // ExecuteScriptAsync возвращает JSON-строку в кавычках с экранированием
-        //        var unescaped = JsonSerializer.Deserialize<string>(cameraJson);
-        //        if (!string.IsNullOrEmpty(unescaped))
-        //        {
-        //            var cam = JsonSerializer.Deserialize<CameraConfig>(unescaped);
-        //            if (cam != null) _sceneConfig.Camera = cam;
-        //        }
-
-        //        await _dataService.SaveSceneConfigAsync(_sceneConfig);
-
-        //        MessageBox.Show("Данные сцены сохранены!",
-        //            "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        MessageBox.Show($"Ошибка сохранения: {ex.Message}",
-        //            "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-        //    }
-        //}
-
-        //private async void LoadData_Click(object sender, RoutedEventArgs e)
-        //{
-        //    if (!string.IsNullOrEmpty(_sceneConfig.RotationMode))
-        //    {
-        //        var mode = _sceneConfig.RotationMode;
-        //        await _bridge.CallAsync("setRotationMode", mode);
-
-        //        // Синхронизируем UI
-        //        foreach (ComboBoxItem item in RotationModeCombo.Items)
-        //        {
-        //            if (item.Tag as string == mode)
-        //            {
-        //                RotationModeCombo.SelectedItem = item;
-        //                break;
-        //            }
-        //        }
-        //    }
-        //    try
-        //    {
-        //        // 1. Читаем конфиг из JSON
-        //        _sceneConfig = await _dataService.LoadSceneConfigAsync();
-        //        _objectsData = _sceneConfig.Objects;
-
-        //        // 2. Передаём данные объектов в JS
-        //        await _bridge.CallWithJsonAsync("setObjectData", _objectsData);
-
-        //        // 3. Восстанавливаем камеру
-        //        if (_sceneConfig.Camera != null)
-        //        {
-        //            var cam = _sceneConfig.Camera;
-        //            await WebView.CoreWebView2.ExecuteScriptAsync(
-        //                $"camera.position.set({cam.PositionX}, {cam.PositionY}, {cam.PositionZ});" +
-        //                $"controls.target.set({cam.TargetX}, {cam.TargetY}, {cam.TargetZ});" +
-        //                "controls.update();");
-        //        }
-
-        //        // 4. Загружаем модель, если она была сохранена
-        //        if (!string.IsNullOrEmpty(_sceneConfig.ModelFilePath))
-        //        {
-        //            var absPath = _fileService.GetModelAbsolutePath(_sceneConfig.ModelFilePath);
-
-        //            if (File.Exists(absPath))
-        //            {
-        //                var fileNameOnly = Path.GetFileName(_sceneConfig.ModelFilePath);
-        //                var url = $"https://models.local/{fileNameOnly}";
-        //                await _bridge.CallAsync("loadModelFromUrl", url, fileNameOnly);
-        //            }
-        //            else
-        //            {
-        //                MessageBox.Show(
-        //                    $"Файл модели не найден: {_sceneConfig.ModelFilePath}\n" +
-        //                    "Загрузите .glb вручную через кнопку «Загрузить модель».",
-        //                    "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
-        //            }
-        //        }
-
-        //        MessageBox.Show("Сцена и данные загружены!",
-        //            "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        MessageBox.Show($"Ошибка загрузки данных: {ex.Message}",
-        //            "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-        //    }
-        //}
-
         // ==================== ПАНЕЛЬ ПРОСМОТРА ====================
         private void ShowViewPanel(SceneObjectData data)
         {
@@ -834,32 +622,6 @@ namespace notaverse_threejs_test1
 
                 if (field.Type == "image" && field.FilePaths.Count > 0)
                 {
-                    // Изображение (олд)
-                    //var img = new Image
-                    //{
-                    //    MaxWidth = 200,
-                    //    MaxHeight = 200,
-                    //    Stretch = Stretch.Uniform,
-                    //    Margin = new Thickness(0, 5, 0, 5)
-                    //};
-
-                    //try
-                    //{
-                    //    var absPath = _fileService.GetAbsolutePath(field.FilePaths[0]);
-                    //    if (File.Exists(absPath))
-                    //    {
-                    //        var bitmap = new BitmapImage();
-                    //        bitmap.BeginInit();
-                    //        bitmap.UriSource = new Uri(absPath);
-                    //        bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                    //        bitmap.EndInit();
-                    //        img.Source = bitmap;
-                    //    }
-                    //}
-                    //catch { /* игнорируем */ }
-
-                    //valueElement = img;
-
                     // Изображения
                     var img = new Image
                     {
@@ -1211,29 +973,6 @@ namespace notaverse_threejs_test1
             FieldsItemsControl.ItemsSource = _selectedObjectData?.Parameters;
         }
 
-        /*
-        private async void CloseEditMenu_Click(object sender, RoutedEventArgs e)
-        {
-            //EditMenuPanel.Visibility = Visibility.Collapsed;
-            if (_selectedObjectData != null)
-            {
-                _selectedObjectData.Name = TxtObjectName.Text;
-
-                // Обновляем или добавляем объект в общий список
-                var existing = _objectsData.FirstOrDefault(o => o.Id == _selectedObjectData.Id);
-                if (existing != null) _objectsData.Remove(existing);
-                _objectsData.Add(_selectedObjectData);
-
-                // Сохраняем в JSON
-                await _dataService.SaveObjectsAsync(_objectsData);
-
-                // Обновляем карту в JS — отправляем ВЕСЬ список, а не один элемент
-                await _bridge.CallWithJsonAsync("setObjectData", _objectsData);
-            }
-
-            EditMenuPanel.Visibility = Visibility.Collapsed;
-        }
-        */
         private async void CloseEditMenu_Click(object sender, RoutedEventArgs e)
         {
             if (_selectedObjectData != null)

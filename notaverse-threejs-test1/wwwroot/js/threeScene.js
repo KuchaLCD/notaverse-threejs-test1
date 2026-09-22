@@ -27,19 +27,6 @@ const container = document.getElementById("three-container");
 container.appendChild(renderer.domElement);
 
 // ======================== КАМЕРА И НАВИГАЦИЯ ========================
-// Олд
-/*
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.dampingFactor = 0.05;
-controls.screenSpacePanning = true;
-// Настройки под Blender-стиль (СКМ — вращение, Shift+СКМ — панорама)
-controls.mouseButtons = {
-    LEFT: null,       // ЛКМ зарезервирована под выбор объектов
-    MIDDLE: THREE.MOUSE.ROTATE,  // СКМ — вращение
-    RIGHT: THREE.MOUSE.PAN       // ПКМ — панорама (или редактирование)
-};
-*/
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.05;
@@ -303,43 +290,6 @@ function onMouseMove(event) {
     }
 }
 
-// Обработчик клика мыши для прокрутки (олд)
-/*
-renderer.domElement.addEventListener("click", onClick);
-function onClick(event) {
-    const rect = renderer.domElement.getBoundingClientRect();
-    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-    raycaster.setFromCamera(mouse, camera);
-
-    const meshes = [];
-    scene.traverse((child) => { if (child.isMesh) meshes.push(child); });
-
-    const intersects = raycaster.intersectObjects(meshes);
-
-    if (intersects.length === 0) {
-        if (currentMode === "view" && selectedObject) {
-            selectedObject = null;
-            notifyCSharp("objectDeselected", {});
-        }
-        return;
-    }
-
-    const clickedObject = intersects[0].object;
-    const objectId = clickedObject.userData.objectId || clickedObject.uuid;
-    const objectData = objectDataMap.get(objectId) || null;
-
-    if (currentMode === "view") {
-        selectedObject = clickedObject;
-        notifyCSharp("objectSelected", { objectId, data: objectData });
-    } else if (currentMode === "edit") {
-        if (hoveredObject === clickedObject) {
-            notifyCSharp("objectEdit", { objectId, data: objectData });
-        }
-    }
-}
-*/
 // ======================== КЛИК С ПОРОГОМ ДВИЖЕНИЯ ========================
 let pointerDownInfo = null;
 const CLICK_THRESHOLD_PX = 5; // если мышь сместилась меньше — это клик, а не drag
