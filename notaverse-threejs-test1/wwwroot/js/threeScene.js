@@ -27,6 +27,8 @@ const container = document.getElementById("three-container");
 container.appendChild(renderer.domElement);
 
 // ======================== КАМЕРА И НАВИГАЦИЯ ========================
+// Олд
+/*
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.05;
@@ -37,6 +39,37 @@ controls.mouseButtons = {
     MIDDLE: THREE.MOUSE.ROTATE,  // СКМ — вращение
     RIGHT: THREE.MOUSE.PAN       // ПКМ — панорама (или редактирование)
 };
+*/
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+controls.screenSpacePanning = true;
+
+// Начальная настройка — СКМ-режим (Blender-стиль)
+let rotationMode = "skm";
+
+function applyRotationMode(mode) {
+    rotationMode = mode;
+    if (mode === "lkm") {
+        // ЛКМ вращает, СКМ зуммирует, ПКМ панорама
+        controls.mouseButtons = {
+            LEFT: THREE.MOUSE.ROTATE,
+            MIDDLE: THREE.MOUSE.DOLLY,
+            RIGHT: THREE.MOUSE.PAN
+        };
+    } else {
+        // СКМ вращает, ЛКМ отдана под выбор объектов, ПКМ панорама
+        controls.mouseButtons = {
+            LEFT: null,
+            MIDDLE: THREE.MOUSE.ROTATE,
+            RIGHT: THREE.MOUSE.PAN
+        };
+    }
+    controls.update();
+    console.log("Режим вращения:", mode);
+}
+
+applyRotationMode("skm"); // по умолчанию
 
 // ======================== ОСВЕЩЕНИЕ ========================
 const dirLight = new THREE.DirectionalLight(0xffeedd, 2.5);
@@ -270,8 +303,68 @@ function onMouseMove(event) {
     }
 }
 
+// Обработчик клика мыши для прокрутки (олд)
+/*
 renderer.domElement.addEventListener("click", onClick);
 function onClick(event) {
+    const rect = renderer.domElement.getBoundingClientRect();
+    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+    raycaster.setFromCamera(mouse, camera);
+
+    const meshes = [];
+    scene.traverse((child) => { if (child.isMesh) meshes.push(child); });
+
+    const intersects = raycaster.intersectObjects(meshes);
+
+    if (intersects.length === 0) {
+        if (currentMode === "view" && selectedObject) {
+            selectedObject = null;
+            notifyCSharp("objectDeselected", {});
+        }
+        return;
+    }
+
+    const clickedObject = intersects[0].object;
+    const objectId = clickedObject.userData.objectId || clickedObject.uuid;
+    const objectData = objectDataMap.get(objectId) || null;
+
+    if (currentMode === "view") {
+        selectedObject = clickedObject;
+        notifyCSharp("objectSelected", { objectId, data: objectData });
+    } else if (currentMode === "edit") {
+        if (hoveredObject === clickedObject) {
+            notifyCSharp("objectEdit", { objectId, data: objectData });
+        }
+    }
+}
+*/
+// ======================== КЛИК С ПОРОГОМ ДВИЖЕНИЯ ========================
+let pointerDownInfo = null;
+const CLICK_THRESHOLD_PX = 5; // если мышь сместилась меньше — это клик, а не drag
+
+renderer.domElement.addEventListener("pointerdown", (e) => {
+    if (e.button === 0) { // только ЛКМ
+        pointerDownInfo = { x: e.clientX, y: e.clientY };
+    }
+});
+
+renderer.domElement.addEventListener("pointerup", (e) => {
+    if (e.button !== 0 || !pointerDownInfo) return;
+
+    const dx = e.clientX - pointerDownInfo.x;
+    const dy = e.clientY - pointerDownInfo.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    pointerDownInfo = null;
+
+    // Клик = малое смещение
+    if (distance < CLICK_THRESHOLD_PX) {
+        handleObjectClick(e);
+    }
+});
+
+function handleObjectClick(event) {
     const rect = renderer.domElement.getBoundingClientRect();
     mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
@@ -354,6 +447,13 @@ window.setBrightness = function (value) {
     dirLight.intensity = value;
 };
 
+/**
+ * Установка режима вращения: "lkm" или "skm".
+ */
+window.setRotationMode = function (mode) {
+    applyRotationMode(mode);
+};
+
 // ======================== МОСТ С C# ========================
 function notifyCSharp(type, payload) {
     if (window.chrome && window.chrome.webview) {
@@ -404,3 +504,5 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 });
+
+window.clearModel = clearModel;

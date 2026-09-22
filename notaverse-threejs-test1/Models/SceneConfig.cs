@@ -7,14 +7,29 @@ namespace notaverse_threejs_test1.Models
 {
     public class SceneConfig
     {
+        [JsonPropertyName("projectId")]
+        public string ProjectId { get; set; } = Guid.NewGuid().ToString();
+
+        [JsonPropertyName("projectName")]
+        public string ProjectName { get; set; } = "Новый проект";
+
+        [JsonPropertyName("createdAt")]
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        [JsonPropertyName("modifiedAt")]
+        public DateTime ModifiedAt { get; set; } = DateTime.Now;
+
+        [JsonPropertyName("rotationMode")]
+        public string RotationMode { get; set; } = "skm";
+
+        [JsonPropertyName("modelFilePath")]
+        public string ModelFilePath { get; set; } = string.Empty;
+
         [JsonPropertyName("camera")]
         public CameraConfig Camera { get; set; } = new();
 
         [JsonPropertyName("objects")]
         public List<SceneObjectData> Objects { get; set; } = new();
-
-        [JsonPropertyName("modelFilePath")]
-        public string ModelFilePath { get; set; } = string.Empty;
     }
 
     public class CameraConfig

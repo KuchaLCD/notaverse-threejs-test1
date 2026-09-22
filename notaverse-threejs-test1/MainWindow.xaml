@@ -23,39 +23,102 @@
         <Border Grid.Row="0" Background="#C0000000" Padding="10">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
+                    <!-- Имя проекта -->
+                    <ColumnDefinition Width="Auto"/>
+                    <!-- Режимы -->
+                    <ColumnDefinition Width="*"/>
+                    <!-- Растяжка -->
+                    <ColumnDefinition Width="Auto"/>
+                    <!-- Проект-кнопки -->
+                    <ColumnDefinition Width="Auto"/>
+                    <!-- Режим вращения -->
+                    <ColumnDefinition Width="Auto"/>
+                    <!-- Файл-кнопки -->
                 </Grid.ColumnDefinitions>
 
-                <!-- Режимы работы -->
-                <StackPanel Orientation="Horizontal" Grid.Column="0">
-                    <RadioButton x:Name="RadioView" Content="👁 Просмотр"
-                                 IsChecked="True" Foreground="White"
-                                 Checked="Mode_Changed" Margin="0,0,20,0"/>
-                    <RadioButton x:Name="RadioEdit" Content="✎ Инспектор"
-                                 Foreground="White"
-                                 Checked="Mode_Changed" Margin="0,0,20,0"/>
+                <!-- Имя проекта -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="0,0,20,0">
+                    <TextBlock Text="📁"
+                       Foreground="White"
+                       FontSize="16"
+                       VerticalAlignment="Center"
+                       Margin="0,0,6,0"/>
+                    <TextBox x:Name="TxtProjectName"
+                     Width="180"
+                     Text="Новый проект"
+                     VerticalContentAlignment="Center"
+                     Background="#40FFFFFF"
+                     Foreground="White"
+                     BorderThickness="0"
+                     Padding="6,3"
+                     FontWeight="Bold"
+                     ToolTip="Название текущего проекта"/>
                 </StackPanel>
 
-                <!-- Кнопки -->
-                <StackPanel Orientation="Horizontal" Grid.Column="1">
+                <!-- Режимы работы -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <RadioButton x:Name="RadioView"
+                         Content="👁 Просмотр"
+                         IsChecked="True"
+                         Foreground="White"
+                         Checked="Mode_Changed"
+                         Margin="0,0,20,0"/>
+                    <RadioButton x:Name="RadioEdit"
+                         Content="✎ Инспектор"
+                         Foreground="White"
+                         Checked="Mode_Changed"
+                         Margin="0,0,20,0"/>
+                </StackPanel>
+
+                <!-- Кнопки проектов -->
+                <StackPanel Grid.Column="3" Orientation="Horizontal" Margin="0,0,20,0">
+                    <Button Content="+ Новый"
+                    Click="NewProject_Click"
+                    Padding="10,5" Margin="0,0,6,0"
+                    Background="#FF34495E" Foreground="White"
+                    BorderThickness="0" FontWeight="Bold"
+                    ToolTip="Создать новый проект"/>
+
+                    <Button Content="📂 Открыть проект"
+                    Click="OpenProject_Click"
+                    Padding="10,5" Margin="0,0,6,0"
+                    Background="#FF2980B9" Foreground="White"
+                    BorderThickness="0" FontWeight="Bold"
+                    ToolTip="Открыть сохранённый проект"/>
+
+                    <Button Content="💾 Сохранить проект"
+                    Click="SaveProject_Click"
+                    Padding="10,5"
+                    Background="#FF27AE60" Foreground="White"
+                    BorderThickness="0" FontWeight="Bold"
+                    ToolTip="Сохранить текущий проект"/>
+                </StackPanel>
+
+                <!-- Режим вращения -->
+                <StackPanel Grid.Column="4" Orientation="Horizontal" Margin="0,0,20,0">
+                    <TextBlock Text="🎮 Вращение:"
+                       Foreground="White"
+                       VerticalAlignment="Center"
+                       Margin="0,0,6,0"/>
+                    <ComboBox x:Name="RotationModeCombo"
+                      SelectedIndex="1"
+                      Width="80"
+                      VerticalAlignment="Center"
+                      SelectionChanged="RotationMode_Changed">
+                        <ComboBoxItem Content="ЛКМ" Tag="lkm"/>
+                        <ComboBoxItem Content="СКМ" Tag="skm"/>
+                    </ComboBox>
+                </StackPanel>
+
+                <!-- Кнопки работы с моделью -->
+                <StackPanel Grid.Column="5" Orientation="Horizontal">
                     <Button Content="📂 Загрузить модель"
-                            Click="LoadModel_Click"
-                            Padding="10,5" Margin="0,0,10,0"
-                            Background="#FF8E44AD" Foreground="White"
-                            BorderThickness="0" FontWeight="Bold"/>
-
-                    <Button Content="💾 Сохранить данные"
-                            Click="SaveData_Click"
-                            Padding="10,5" Margin="0,0,10,0"
-                            Background="#FF27AE60" Foreground="White"
-                            BorderThickness="0" FontWeight="Bold"/>
-
-                    <Button Content="📥 Загрузить данные"
-                            Click="LoadData_Click"
-                            Padding="10,5"
-                            Background="#FF2980B9" Foreground="White"
-                            BorderThickness="0" FontWeight="Bold"/>
+                    Click="LoadModel_Click"
+                    Padding="10,5"
+                    Background="#FF8E44AD" Foreground="White"
+                    BorderThickness="0" FontWeight="Bold"
+                    ToolTip="Импортировать .glb в текущий проект"/>
                 </StackPanel>
             </Grid>
         </Border>
@@ -217,6 +280,57 @@
                         Height="35"
                         Margin="0,10,0,0"/>
             </StackPanel>
+        </Border>
+        <!-- ==================== ОКНО ВЫБОРА ПРОЕКТА ==================== -->
+        <Border x:Name="OpenProjectPanel"
+            Visibility="Collapsed"
+            Background="White"
+            BorderBrush="#2980B9"
+            BorderThickness="2"
+            CornerRadius="5"
+            Width="500"
+            MaxHeight="500"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Padding="15">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0"
+                   Text="📂 Открыть проект"
+                   FontSize="18"
+                   FontWeight="Bold"
+                   Foreground="#2980B9"
+                   Margin="0,0,0,10"/>
+
+                <ListBox x:Name="ProjectsList"
+                 Grid.Row="1"
+                 MinHeight="200"
+                 DisplayMemberPath="DisplayName"/>
+
+                <StackPanel Grid.Row="2"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="0,10,0,0">
+                    <Button Content="Удалить"
+                    Click="DeleteProject_Click"
+                    Padding="15,6" Margin="0,0,6,0"
+                    Background="#FFE74C3C" Foreground="White"
+                    BorderThickness="0" FontWeight="Bold"/>
+                    <Button Content="Отмена"
+                    Click="CloseOpenProject_Click"
+                    Padding="15,6" Margin="0,0,6,0"/>
+                    <Button Content="Открыть"
+                    Click="ConfirmOpenProject_Click"
+                    Padding="15,6"
+                    Background="#FF2980B9" Foreground="White"
+                    BorderThickness="0" FontWeight="Bold"/>
+                </StackPanel>
+            </Grid>
         </Border>
     </Grid>
 </Window>
