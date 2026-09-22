@@ -83,6 +83,14 @@
 3. Убедитесь, что папка `node_modules` или локальные скрипты `Three.js` скопированы в директорию `wwwroot/lib/three/`.
 4. Скомпилируйте и запустите проект (F5).
 
+### Установка и запуск
+
+1. Склонируйте репозиторий если ещё не клонировали в удобную для вас папку
+   ```bash
+   git clone https://github.comyour-username/NotaVerse-BIM.git
+   ```
+2. Далее перейдите в проводнике по пути: `...\notaverse-threejs-test1\notaverse-threejs-test1\bin\Debug\net10.0-windows`
+3. Найдите и запустите `notaverse-threejs-test1.exe`
 ---
 
 ## 📂 Структура репозитория
